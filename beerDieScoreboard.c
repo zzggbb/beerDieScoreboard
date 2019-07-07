@@ -8,6 +8,7 @@
 
 //telemtry
 #define TELEM_BAUD 57600
+#define TELEM Serial1
 
 typedef struct Score{
   int Team1[2];
@@ -25,6 +26,7 @@ struct Score gameScore;
 enum states curState = SCORING;
 int pressedButtonNumber = 0;
 int pressType = 1; //1 for short press (increment), 2 for longer press (decrement)
+int testButtonPinState = 1;
 
 //function prototypes
 void resetScore();
@@ -32,22 +34,31 @@ void updateScore();
 void incrementScore(int teamNumber);
 void decrementScore(int teamNumber);
 int getTeamScore(int teamNumber);
+void testCase1();
 
 void setup() {
+  TELEM.begin(TELEM_BAUD);
   Serial.begin(9600);
+
+  pinMode(23, INPUT); //test button digital input pin
+  
   resetScore();
+  testCase1();
 }
 
 void loop() {
   switch(curState) {
     case SCORING:
         //pressedButtonNumber = buttonPressed(); //blocking and waits for user input, also set pressType = 1 for inc and 2 for dec based on length of press
-        testCase1();
-
-        //temporary way to build packet for testing
-        String packetString = String(getTeamScore(1)) + "," + String(getTeamScore(2)) + "," + String(gameScore.Team1[0]) + "," + String(gameScore.Team1[1]) + "," + String(gameScore.Team2[0]) + "," + String(gameScore.Team2[1]);
-        Serial.print(packetString);
+        testButtonPinState = digitalRead(23);
+        if(testButtonPinState == 0){
+            pressedButtonNumber = 2;
+            pressType = 1;
+            updateScore();
         }
+        String packetString = String(getTeamScore(1)) + "," + String(getTeamScore(2)) + "," + String(gameScore.Team1[0]) + "," + String(gameScore.Team1[1]) + "," + String(gameScore.Team2[0]) + "," + String(gameScore.Team2[1]);
+        Serial.println(packetString);
+        
     break;
     case TRANSMIT:
     break;
