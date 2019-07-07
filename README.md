@@ -1,0 +1,1 @@
+# Scoreboard for beer die
